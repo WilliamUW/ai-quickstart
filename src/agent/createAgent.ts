@@ -16,7 +16,7 @@ export class Agent {
   constructor() {
     // Initialize Opacity adapter for verifiable AI inference
     this.opacity = new OpacityAdapter({
-      apiKey: process.env.OPACITY_OPENAI_KEY!,
+      apiKey: process.env.OPENAI_KEY!,
       teamId: process.env.OPACITY_TEAM_ID!,
       teamName: process.env.OPACITY_TEAM_NAME!,
       opacityProverUrl: process.env.OPACITY_PROVER_URL!,
