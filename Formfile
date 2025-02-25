@@ -1,9 +1,13 @@
-NAME agent-kit-server
+NAME agent-kit-server-23
 
-USER username:bigdog passwd:bigdog123 sudo:true disable_root:false ssh_authorized_keys:"<ssh-key>"
+USER username:bigdog passwd:bigdog123 sudo:true disable_root:false ssh_authorized_keys:"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPyzF/dcTQvyOdxfnnNfzOqgKuqyQAHMA/iYaM4grl08 gajesh@eigenlabs.org"
 
 VCPU 2
 
 MEM 2048 
 
-DISK 5
+DISK 20
+
+COPY ./src /app
+
+WORKDIR /app
