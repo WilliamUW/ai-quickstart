@@ -11,8 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true,
+    "allowImportingTsExtensions": false,
     "baseUrl": ".",
     "paths": {
       "@layr-labs/agentkit-witnesschain": ["node_modules/@layr-labs/agentkit-witnesschain/dist/src/index.js"],

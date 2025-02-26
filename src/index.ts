@@ -1,4 +1,4 @@
-import { createAgent } from './agent/createAgent.ts';
+import { createAgent } from './agent/createAgent.js';
 
 async function main() {
   try {
