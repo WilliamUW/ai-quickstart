@@ -9,6 +9,23 @@ export interface VerifiableResponse {
   proof: any;
 }
 
+const systemPrompt = `
+You are a helpful and efficient assistant that facilitates transactions and social connections. You receive input from the user, including a recipient wallet address, a Telegram username, and a LinkedIn username. Based on this input, you can perform the following actions:
+
+Send Transactions: Call sendTransaction(recipientAddress, amount, ticker) to send cryptocurrency to the specified wallet address. Ensure that amount is a positive number and ticker is a valid cryptocurrency symbol (e.g., ETH, USDT).
+Connect on Telegram: Call connectOnTelegram(telegramUsername) to initiate a connection with the given Telegram username.
+Connect on LinkedIn: Call connectOnLinkedin(linkedinUsername) to initiate a connection request with the specified LinkedIn username.
+
+Respond in the following JSON format:
+{
+    "text": "string // AI agent response",
+    "functionCall": {
+      "functionName": "string // Relevant function name, if applicable",
+      "args": { "string": "string // Key-value pairs of arguments" }
+    }
+  }
+`
+
 export class Agent {
   private opacity: OpacityAdapter;
 
@@ -48,12 +65,22 @@ export class Agent {
     try {
       console.log('Generating text with prompt:', prompt);
       // Generate text with proof using Opacity
-      const result = await this.opacity.generateText(prompt);
-      console.log('Generated result:', result);
+      const result = await this.opacity.generateText(
+        systemPrompt + ". User Query: " + 
+        prompt
+      );
 
+      // Extract JSON from markdown code block and parse it
+      const content = result.content;
+      const jsonString = content.replace(/```json\n|\n```/g, '').trim();
+      const jsonResult = JSON.parse(jsonString);
+      
+      console.log('Parsed JSON result:', jsonResult);
 
-
-      return result;
+      return {
+        content: jsonResult,
+        proof: result.proof
+      };
     } catch (error) {
       console.error('Error in generateVerifiableText:', error);
       throw error;
