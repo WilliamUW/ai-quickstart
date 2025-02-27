@@ -16,5 +16,11 @@ declare module 'ethstorage-sdk' {
         onFinish?: (totalUploadChunks: number, totalUploadSize: number, totalStorageCost: number) => void;
       }
     }): Promise<any>;
+    
+    download(key: string, callbacks: {
+      onProgress?: (progress: number, count: number, chunk: Buffer) => void;
+      onFail?: (error: Error) => void;
+      onFinish?: () => void;
+    }): Promise<void>;
   }
 } 

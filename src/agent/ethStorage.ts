@@ -60,4 +60,33 @@ export class EthStorageAdapter {
       throw error;
     }
   }
+
+  async readContent(key: string): Promise<string> {
+    try {
+      console.log(`Reading content from EthStorage with key: ${key}...`);
+      
+      let contentChunks: Buffer[] = [];
+      
+      await this.flatDirectory.download(key, {
+        onProgress: function(progress: number, count: number, chunk: Buffer) {
+          console.log(`Download ${progress} of ${count} chunks`);
+          contentChunks.push(chunk);
+        },
+        onFail: function(error: Error) {
+          console.error('Error downloading data:', error);
+          throw error;
+        },
+        onFinish: function() {
+          console.log('Download successful.');
+        }
+      });
+      
+      // Combine all chunks into a single buffer and convert to string
+      const completeContent = Buffer.concat(contentChunks).toString();
+      return completeContent;
+    } catch (error) {
+      console.error('Error reading from EthStorage:', error);
+      throw error;
+    }
+  }
 } 
