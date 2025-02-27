@@ -1,11 +1,12 @@
-// @ts-ignore
-import * as wc from '@layr-labs/agentkit-witnesschain';
+import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
+// @ts-ignore
+import * as wc from '@layr-labs/agentkit-witnesschain';
+
 // @ts-ignore
 import axios from 'axios';
-import * as dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
 
 // Load environment variables from .env file
 dotenv.config();

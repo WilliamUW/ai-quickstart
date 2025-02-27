@@ -1,5 +1,16 @@
-import { FlatDirectory } from 'ethstorage-sdk';
+import { createRequire } from 'module';
+import { dirname } from 'path';
+// Import ethstorage-sdk in a way compatible with ES modules
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+
+// Create a require function that works in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
+
+// Import ethstorage-sdk using the created require function
+const { FlatDirectory } = require('ethstorage-sdk');
 
 dotenv.config();
 

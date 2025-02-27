@@ -1,11 +1,13 @@
 declare module 'ethstorage-sdk' {
-  export class FlatDirectory {
-    static create(config: {
+  export const FlatDirectory: {
+    create(config: {
       rpc: string;
       privateKey: string;
       address: string;
-    }): Promise<FlatDirectory>;
-    
+    }): Promise<FlatDirectoryInstance>;
+  };
+  
+  interface FlatDirectoryInstance {
     upload(request: {
       key: string;
       content: Buffer;
