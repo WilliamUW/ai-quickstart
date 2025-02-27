@@ -1,7 +1,8 @@
-import { EigenDAAdapter } from '@layr-labs/agentkit-eigenda';
+import { EigenDAAdapter } from "@layr-labs/agentkit-eigenda";
+import { EthStorageAdapter } from "./ethStorage.js";
 // @ts-ignore
-import { OpacityAdapter } from '@layr-labs/agentkit-opacity';
-import dotenv from 'dotenv';
+import { OpacityAdapter } from "@layr-labs/agentkit-opacity";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -26,10 +27,11 @@ Respond in the following JSON format:
       "args": { "string": "string // Key-value pairs of arguments" }
     }
   }
-`
+`;
 
 export class Agent {
   private opacity: OpacityAdapter;
+  private ethStorage: EthStorageAdapter;
   // private eigenDA: EigenDAAdapter;
 
   constructor() {
@@ -39,6 +41,17 @@ export class Agent {
       teamId: process.env.OPACITY_TEAM_ID!,
       teamName: process.env.OPACITY_TEAM_NAME!,
       opacityProverUrl: process.env.OPACITY_PROVER_URL!,
+    });
+
+    // Initialize EthStorage adapter
+    this.ethStorage = new EthStorageAdapter({
+      privateKey: process.env.ETHSTORAGE_PRIVATE_KEY!,
+      rpcUrl:
+        process.env.ETHSTORAGE_RPC_URL ||
+        "https://rpc.beta.testnet.l2.quarkchain.io:8545",
+      directoryAddress:
+        process.env.ETHSTORAGE_DIRECTORY_ADDRESS ||
+        "0xA460C70b474cA4125c35dFaFfC1e83B0122efcaB",
     });
 
     // Initialize EigenDA adapter for data availability logging
@@ -57,15 +70,18 @@ export class Agent {
    */
   async initialize() {
     try {
-      console.log('Initializing Opacity adapter...');
+      console.log("Initializing Opacity adapter...");
       await this.opacity.initialize();
 
-      console.log('Initializing EigenDA adapter...');
+      console.log("Initializing EthStorage adapter...");
+      await this.ethStorage.initialize();
+
+      console.log("Initializing EigenDA adapter...");
       // await this.eigenDA.initialize();
-      
-      console.log('All adapters initialized successfully');
+
+      console.log("All adapters initialized successfully");
     } catch (error) {
-      console.error('Error initializing adapters:', error);
+      console.error("Error initializing adapters:", error);
       throw error;
     }
   }
@@ -75,19 +91,35 @@ export class Agent {
    */
   async generateVerifiableText(prompt: string): Promise<VerifiableResponse> {
     try {
-      console.log('Generating text with prompt:', prompt);
+      console.log("Generating text with prompt:", prompt);
       // Generate text with proof using Opacity
       const result = await this.opacity.generateText(
-        systemPrompt + ". User Query: " + 
-        prompt
+        systemPrompt + ". User Query: " + prompt
       );
 
       // Extract JSON from markdown code block and parse it
       const content = result.content;
-      const jsonString = content.replace(/```json\n|\n```/g, '').trim();
+      const jsonString = content.replace(/```json\n|\n```/g, "").trim();
       const jsonResult = JSON.parse(jsonString);
-      
-      console.log('Parsed JSON result:', jsonResult);
+
+      console.log("Parsed JSON result:", jsonResult);
+
+      // Log the generation to EthStorage
+      const timestamp = new Date().toISOString();
+      const logKey = `text-generation-${timestamp}.json`;
+      if (process.env.ETHSTORAGE_ENABLED) {
+        await this.ethStorage.uploadContent(
+          logKey,
+          JSON.stringify({
+            prompt,
+            result: jsonResult,
+            hasProof: !!result.proof,
+            timestamp,
+          })
+        );
+      } else {
+        console.log("ETHStorage Skipped.")
+      }
 
       // Log the generation to EigenDA
       // await this.eigenDA.info('Text Generation', {
@@ -98,10 +130,10 @@ export class Agent {
 
       return {
         content: jsonResult,
-        proof: result.proof
+        proof: result.proof,
       };
     } catch (error) {
-      console.error('Error in generateVerifiableText:', error);
+      console.error("Error in generateVerifiableText:", error);
       throw error;
     }
   }
@@ -110,6 +142,16 @@ export class Agent {
    * Utility method to log information directly to EigenDA
    */
   async logInfo(message: string, metadata: any): Promise<void> {
+    const timestamp = new Date().toISOString();
+    const logKey = `info-log-${timestamp}.json`;
+    await this.ethStorage.uploadContent(
+      logKey,
+      JSON.stringify({
+        message,
+        metadata,
+        timestamp,
+      })
+    );
     // await this.eigenDA.info(message, metadata);
   }
 }
@@ -119,4 +161,4 @@ export const createAgent = async (): Promise<Agent> => {
   const agent = new Agent();
   await agent.initialize();
   return agent;
-}; 
+};
