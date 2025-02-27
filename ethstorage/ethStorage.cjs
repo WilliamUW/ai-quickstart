@@ -3,6 +3,7 @@ require("dotenv").config({ path: ".env" });
 const { FlatDirectory } = require("ethstorage-sdk");
 
 const privateKey = process.env.ETHSTORAGE_PRIVATE_KEY;
+const ethStorageRpc = "https://rpc.beta.testnet.l2.ethstorage.io:9596";
 const rpc = "https://rpc.beta.testnet.l2.quarkchain.io:8545";
 
 async function test() {
@@ -10,6 +11,7 @@ async function test() {
 
   const flatDirectory = await FlatDirectory.create({
     rpc: rpc,
+    ethStorageRpc: ethStorageRpc,
     privateKey: privateKey,
     address: address,
   });
