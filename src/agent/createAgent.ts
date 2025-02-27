@@ -29,7 +29,7 @@ Respond in the following JSON format:
 
 export class Agent {
   private opacity: OpacityAdapter;
-  private eigenDA: EigenDAAdapter;
+  // private eigenDA: EigenDAAdapter;
 
   constructor() {
     // Initialize Opacity adapter for verifiable AI inference
@@ -41,14 +41,14 @@ export class Agent {
     });
 
     // Initialize EigenDA adapter for data availability logging
-    this.eigenDA = new EigenDAAdapter({
-      privateKey: process.env.EIGENDA_PRIVATE_KEY!,
-      apiUrl: process.env.EIGENDA_API_URL!,
-      rpcUrl: process.env.EIGENDA_BASE_RPC_URL!,
-      creditsContractAddress: process.env.EIGENDA_CREDITS_CONTRACT!,
-      flushInterval: 5000, // Flush logs every 5 seconds
-      maxBufferSize: 100, // Maximum number of logs to buffer
-    });
+    // this.eigenDA = new EigenDAAdapter({
+    //   privateKey: process.env.EIGENDA_PRIVATE_KEY!,
+    //   apiUrl: process.env.EIGENDA_API_URL!,
+    //   rpcUrl: process.env.EIGENDA_BASE_RPC_URL!,
+    //   creditsContractAddress: process.env.EIGENDA_CREDITS_CONTRACT!,
+    //   flushInterval: 5000, // Flush logs every 5 seconds
+    //   maxBufferSize: 100, // Maximum number of logs to buffer
+    // });
   }
 
   /**
@@ -60,7 +60,7 @@ export class Agent {
       await this.opacity.initialize();
 
       console.log('Initializing EigenDA adapter...');
-      await this.eigenDA.initialize();
+      // await this.eigenDA.initialize();
       
       console.log('All adapters initialized successfully');
     } catch (error) {
@@ -89,11 +89,11 @@ export class Agent {
       console.log('Parsed JSON result:', jsonResult);
 
       // Log the generation to EigenDA
-      await this.eigenDA.info('Text Generation', {
-        prompt,
-        result: result.content,
-        hasProof: !!result.proof,
-      });
+      // await this.eigenDA.info('Text Generation', {
+      //   prompt,
+      //   result: result.content,
+      //   hasProof: !!result.proof,
+      // });
 
       return {
         content: jsonResult,
@@ -109,7 +109,7 @@ export class Agent {
    * Utility method to log information directly to EigenDA
    */
   async logInfo(message: string, metadata: any): Promise<void> {
-    await this.eigenDA.info(message, metadata);
+    // await this.eigenDA.info(message, metadata);
   }
 }
 
