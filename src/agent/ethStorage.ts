@@ -1,3 +1,4 @@
+// @ts-ignore
 import { FlatDirectory } from 'ethstorage-sdk';
 import dotenv from 'dotenv';
 
