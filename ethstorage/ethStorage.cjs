@@ -33,7 +33,7 @@ async function test() {
     console.log("uploaded", response);
   }
 
-  const key = "test.txt";
+  const key = "text-generation-2025-02-27T04:24:41.943Z.json";
   await flatDirectory.download(key, {
     onProgress: function (progress, count, chunk) {
       console.log(
