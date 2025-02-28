@@ -126,7 +126,7 @@ export class Agent {
       const logKey = `${userAddress}-${nextSequence}.json`;
 
       if (process.env.ETHSTORAGE_ENABLED) {
-        await this.ethStorage.uploadContent(
+        this.ethStorage.uploadContent(
           logKey,
           JSON.stringify({
             result: jsonResult,
