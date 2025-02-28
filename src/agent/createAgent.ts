@@ -98,6 +98,8 @@ export class Agent {
       );
 
       // Extract JSON from markdown code block and parse it
+      console.log("Result:", result);
+
       const content = result.content;
       const jsonString = content.replace(/```json\n|\n```/g, "").trim();
       const jsonResult = JSON.parse(jsonString);
