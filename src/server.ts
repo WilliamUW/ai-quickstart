@@ -1,7 +1,7 @@
-import express from 'express';
 import cors from 'cors';
 import { createAgent } from './agent/createAgent.js';
 import dotenv from 'dotenv';
+import express from 'express';
 
 dotenv.config();
 
@@ -54,10 +54,43 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
+// New endpoint to get all transactions for a wallet address
+app.get('/api/transactions/:walletAddress', async (req, res) => {
+  try {
+    const { walletAddress } = req.params;
+    
+    // Validate wallet address format (basic check for Ethereum address)
+    if (!/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
+      return res.status(400).json({ 
+        error: 'Invalid wallet address format. Must be a valid Ethereum address.' 
+      });
+    }
+    
+    console.log(`Received request to get transactions for wallet: ${walletAddress}`);
+    
+    // Call the agent's getAllTransactions method
+    const transactions = await agent.getAllTransactions(walletAddress);
+    
+    // Return the transactions
+    return res.status(200).json({ 
+      walletAddress,
+      transactionCount: transactions.length,
+      transactions 
+    });
+  } catch (error) {
+    console.error('Error retrieving transactions:', error);
+    return res.status(500).json({ 
+      error: 'An error occurred while retrieving transactions',
+      message: error.message 
+    });
+  }
+});
+
 // Start server
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
   console.log('Available endpoints:');
   console.log('  GET  /health');
   console.log('  POST /api/generate');
+  console.log('  GET  /api/transactions/:walletAddress');
 }); 

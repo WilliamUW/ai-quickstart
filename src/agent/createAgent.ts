@@ -56,6 +56,8 @@ export class Agent {
       directoryAddress:
         process.env.ETHSTORAGE_DIRECTORY_ADDRESS ||
         "0xA460C70b474cA4125c35dFaFfC1e83B0122efcaB",
+      ethStorageRpc: process.env.ETHSTORAGE_RPC_URL ||
+        "https://rpc.beta.testnet.l2.ethstorage.io:9596",
     });
 
     // Initialize EigenDA adapter for data availability logging
@@ -128,7 +130,6 @@ export class Agent {
         await this.ethStorage.uploadContent(
           logKey,
           JSON.stringify({
-            prompt,
             result: jsonResult,
             hasProof: !!result.proof,
             timestamp: new Date().toISOString(),
@@ -184,6 +185,41 @@ export class Agent {
       })
     );
     // await this.eigenDA.info(message, metadata);
+  }
+
+  /**
+   * Retrieve all transactions for a specific wallet address
+   * @param walletAddress The wallet address to retrieve transactions for
+   * @returns Array of transaction data
+   */
+  async getAllTransactions(walletAddress: string): Promise<any[]> {
+    console.log(`Retrieving all transactions for wallet address: ${walletAddress}`);
+    const transactions = [];
+    let sequenceNumber = 1;
+    let continueReading = true;
+
+    while (continueReading) {
+      try {
+        const key = `${walletAddress}-${sequenceNumber}.json`;
+        console.log(`Attempting to read: ${key}`);
+        
+        const content = await this.ethStorage.readContent(key);
+        const data = JSON.parse(content);
+        
+        transactions.push(data);
+        console.log(`Successfully retrieved transaction #${sequenceNumber}`);
+        
+        // Move to the next sequence number
+        sequenceNumber++;
+      } catch (error) {
+        // If we get an error, assume we've reached the end of the sequence
+        console.log(`No more transactions found after sequence #${sequenceNumber - 1}`);
+        continueReading = false;
+      }
+    }
+
+    console.log(`Retrieved ${transactions.length} transactions for ${walletAddress}`);
+    return transactions;
   }
 }
 

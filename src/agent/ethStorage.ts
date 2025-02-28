@@ -18,6 +18,7 @@ export interface EthStorageConfig {
   privateKey: string;
   rpcUrl: string;
   directoryAddress: string;
+  ethStorageRpc?: string;
 }
 
 export class EthStorageAdapter {
@@ -35,6 +36,7 @@ export class EthStorageAdapter {
         rpc: this.config.rpcUrl,
         privateKey: this.config.privateKey,
         address: this.config.directoryAddress,
+        ethStorageRpc: this.config.ethStorageRpc || this.config.rpcUrl,
       });
       console.log('EthStorage adapter initialized successfully');
     } catch (error) {
