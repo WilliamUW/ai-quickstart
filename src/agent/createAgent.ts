@@ -35,6 +35,9 @@ export class Agent {
   private ethStorage: EthStorageAdapter;
   // private eigenDA: EigenDAAdapter;
 
+  // Track the last used sequence number for each user address
+  private userSequenceMap: Map<string, number> = new Map();
+
   constructor() {
     // Initialize Opacity adapter for verifiable AI inference
     this.opacity = new OpacityAdapter({
@@ -92,6 +95,7 @@ export class Agent {
    */
   async generateVerifiableText(prompt: string): Promise<VerifiableResponse> {
     let jsonString = "";
+    let userAddress = "anonymous";
     try {
       console.log("Generating text with prompt:", prompt);
       // Generate text with proof using Opacity
@@ -108,9 +112,18 @@ export class Agent {
 
       console.log("Parsed JSON result:", jsonResult);
 
-      // Log the generation to EthStorage
-      const timestamp = new Date().toISOString();
-      const logKey = `text-generation-${timestamp}.json`;
+      if (jsonResult.functionCall && jsonResult.functionCall.functionName === "sendTransaction" && jsonResult.functionCall.args.recipientAddress) {
+        userAddress = jsonResult.functionCall.args.recipientAddress;
+      }
+
+      // Get the next sequence number for this user
+      const currentSequence = this.userSequenceMap.get(userAddress) || 0;
+      const nextSequence = currentSequence + 1;
+      this.userSequenceMap.set(userAddress, nextSequence);
+      
+      // Create the key with user address and sequence number
+      const logKey = `${userAddress}-${nextSequence}.json`;
+      
       if (process.env.ETHSTORAGE_ENABLED) {
         await this.ethStorage.uploadContent(
           logKey,
@@ -118,11 +131,13 @@ export class Agent {
             prompt,
             result: jsonResult,
             hasProof: !!result.proof,
-            timestamp,
+            timestamp: new Date().toISOString(),
+            userAddress,
+            sequence: nextSequence
           })
         );
       } else {
-        console.log("ETHStorage Skipped.")
+        console.log(`ETHStorage Skipped. Would have used key: ${logKey}`);
       }
 
       // Log the generation to EigenDA
@@ -148,15 +163,24 @@ export class Agent {
   /**
    * Utility method to log information directly to EigenDA
    */
-  async logInfo(message: string, metadata: any): Promise<void> {
-    const timestamp = new Date().toISOString();
-    const logKey = `info-log-${timestamp}.json`;
+  async logInfo(message: string, metadata: any, userAddress: string = "anonymous"): Promise<void> {
+    // Get the next sequence number for this user
+    const currentSequence = this.userSequenceMap.get(userAddress) || 0;
+    const nextSequence = currentSequence + 1;
+    this.userSequenceMap.set(userAddress, nextSequence);
+    
+    // Create the key with user address and sequence number
+    const logKey = `${userAddress}-${nextSequence}.json`;
+    console.log("Log key:", logKey);
+    
     await this.ethStorage.uploadContent(
       logKey,
       JSON.stringify({
         message,
         metadata,
-        timestamp,
+        timestamp: new Date().toISOString(),
+        userAddress,
+        sequence: nextSequence
       })
     );
     // await this.eigenDA.info(message, metadata);
