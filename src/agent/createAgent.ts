@@ -14,9 +14,9 @@ export interface VerifiableResponse {
 const systemPrompt = `
 You are a helpful and efficient assistant that facilitates transactions and social connections. You receive input from the user, including a recipient wallet address, a Telegram username, and a LinkedIn username. Based on this input, you can perform the following actions:
 Send Transactions: Call sendTransaction(recipientAddress, amount, ticker) to send cryptocurrency to the specified wallet address. Ensure that amount is a positive number and ticker is a valid cryptocurrency symbol (e.g., ETH, USDT).
-Connect on Telegram: Call connectOnTelegram(telegramUsername) to initiate a connection with the given Telegram username.
-Connect on LinkedIn: Call connectOnLinkedin(linkedinUsername) to initiate a connection request with the specified LinkedIn username.
-Connect on Twitter: Call connectOnTwitter(twitterUsername) to initiate a connection request with the specified Twitter username.
+Connect on Telegram: Call connectOnTelegram(username) to initiate a connection with the given Telegram username.
+Connect on LinkedIn: Call connectOnLinkedin(username) to initiate a connection request with the specified LinkedIn username.
+Connect on Twitter: Call connectOnTwitter(username) to initiate a connection request with the specified Twitter username.
 
 Respond in the following JSON format:
 {
@@ -56,7 +56,8 @@ export class Agent {
       directoryAddress:
         process.env.ETHSTORAGE_DIRECTORY_ADDRESS ||
         "0xA460C70b474cA4125c35dFaFfC1e83B0122efcaB",
-      ethStorageRpc: process.env.ETHSTORAGE_RPC_URL ||
+      ethStorageRpc:
+        process.env.ETHSTORAGE_RPC_URL ||
         "https://rpc.beta.testnet.l2.ethstorage.io:9596",
     });
 
@@ -114,18 +115,30 @@ export class Agent {
 
       console.log("Parsed JSON result:", jsonResult);
 
-      if (jsonResult.functionCall && jsonResult.functionCall.functionName === "sendTransaction" && jsonResult.functionCall.args.recipientAddress) {
-        userAddress = jsonResult.functionCall.args.recipientAddress;
+      if (jsonResult.functionCall) {
+        if (
+          jsonResult.functionCall.functionName === "telegram" ||
+          jsonResult.functionCall.functionName === "linkedin" ||
+          jsonResult.functionCall.functionName === "twitter"
+        ) {
+          userAddress = jsonResult.functionCall.args.username;
+        }
+        if (
+          jsonResult.functionCall.functionName === "sendTransaction" &&
+          jsonResult.functionCall.args.recipientAddress
+        ) {
+          userAddress = jsonResult.functionCall.args.recipientAddress;
+        }
       }
 
       // Get the next sequence number for this user
       const currentSequence = this.userSequenceMap.get(userAddress) || 0;
       const nextSequence = currentSequence + 1;
       this.userSequenceMap.set(userAddress, nextSequence);
-      
+
       // Create the key with user address and sequence number
       const logKey = `${userAddress}-${nextSequence}.json`;
-      
+
       if (process.env.ETHSTORAGE_ENABLED) {
         await this.ethStorage.uploadContent(
           logKey,
@@ -134,7 +147,7 @@ export class Agent {
             hasProof: !!result.proof,
             timestamp: new Date().toISOString(),
             userAddress,
-            sequence: nextSequence
+            sequence: nextSequence,
           })
         );
       } else {
@@ -164,16 +177,20 @@ export class Agent {
   /**
    * Utility method to log information directly to EigenDA
    */
-  async logInfo(message: string, metadata: any, userAddress: string = "anonymous"): Promise<void> {
+  async logInfo(
+    message: string,
+    metadata: any,
+    userAddress: string = "anonymous"
+  ): Promise<void> {
     // Get the next sequence number for this user
     const currentSequence = this.userSequenceMap.get(userAddress) || 0;
     const nextSequence = currentSequence + 1;
     this.userSequenceMap.set(userAddress, nextSequence);
-    
+
     // Create the key with user address and sequence number
     const logKey = `${userAddress}-${nextSequence}.json`;
     console.log("Log key:", logKey);
-    
+
     await this.ethStorage.uploadContent(
       logKey,
       JSON.stringify({
@@ -181,7 +198,7 @@ export class Agent {
         metadata,
         timestamp: new Date().toISOString(),
         userAddress,
-        sequence: nextSequence
+        sequence: nextSequence,
       })
     );
     // await this.eigenDA.info(message, metadata);
@@ -193,7 +210,9 @@ export class Agent {
    * @returns Array of transaction data
    */
   async getAllTransactions(walletAddress: string): Promise<any[]> {
-    console.log(`Retrieving all transactions for wallet address: ${walletAddress}`);
+    console.log(
+      `Retrieving all transactions for wallet address: ${walletAddress}`
+    );
     const transactions = [];
     let sequenceNumber = 1;
     let continueReading = true;
@@ -202,23 +221,27 @@ export class Agent {
       try {
         const key = `${walletAddress}-${sequenceNumber}.json`;
         console.log(`Attempting to read: ${key}`);
-        
+
         const content = await this.ethStorage.readContent(key);
         const data = JSON.parse(content);
-        
+
         transactions.push(data);
         console.log(`Successfully retrieved transaction #${sequenceNumber}`);
-        
+
         // Move to the next sequence number
         sequenceNumber++;
       } catch (error) {
         // If we get an error, assume we've reached the end of the sequence
-        console.log(`No more transactions found after sequence #${sequenceNumber - 1}`);
+        console.log(
+          `No more transactions found after sequence #${sequenceNumber - 1}`
+        );
         continueReading = false;
       }
     }
 
-    console.log(`Retrieved ${transactions.length} transactions for ${walletAddress}`);
+    console.log(
+      `Retrieved ${transactions.length} transactions for ${walletAddress}`
+    );
     return transactions;
   }
 }
