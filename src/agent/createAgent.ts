@@ -91,6 +91,7 @@ export class Agent {
    * Generate verifiable text using Opacity and log to EigenDA
    */
   async generateVerifiableText(prompt: string): Promise<VerifiableResponse> {
+    let jsonString = "";
     try {
       console.log("Generating text with prompt:", prompt);
       // Generate text with proof using Opacity
@@ -102,7 +103,7 @@ export class Agent {
       console.log("Result:", result);
 
       const content = result.content;
-      const jsonString = content.replace(/```json\n|\n```/g, "").trim();
+      jsonString = content.replace(/```json\n|\n```/g, "").trim();
       const jsonResult = JSON.parse(jsonString);
 
       console.log("Parsed JSON result:", jsonResult);
@@ -137,7 +138,10 @@ export class Agent {
       };
     } catch (error) {
       console.error("Error in generateVerifiableText:", error);
-      throw error;
+      return {
+        content: jsonString,
+        proof: null,
+      };
     }
   }
 
