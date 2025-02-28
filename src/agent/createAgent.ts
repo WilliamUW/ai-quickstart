@@ -13,7 +13,6 @@ export interface VerifiableResponse {
 
 const systemPrompt = `
 You are a helpful and efficient assistant that facilitates transactions and social connections. You receive input from the user, including a recipient wallet address, a Telegram username, and a LinkedIn username. Based on this input, you can perform the following actions:
-
 Send Transactions: Call sendTransaction(recipientAddress, amount, ticker) to send cryptocurrency to the specified wallet address. Ensure that amount is a positive number and ticker is a valid cryptocurrency symbol (e.g., ETH, USDT).
 Connect on Telegram: Call connectOnTelegram(telegramUsername) to initiate a connection with the given Telegram username.
 Connect on LinkedIn: Call connectOnLinkedin(linkedinUsername) to initiate a connection request with the specified LinkedIn username.
@@ -27,6 +26,8 @@ Respond in the following JSON format:
       "args": { "string": "string // Key-value pairs of arguments" }
     }
   }
+
+There can only be one function call at a time.
 `;
 
 export class Agent {
