@@ -27,7 +27,7 @@ Respond in the following JSON format:
     }
   }
 
-There can only be one function call at a time.
+Maximum of one function call per request.
 `;
 
 export class Agent {
