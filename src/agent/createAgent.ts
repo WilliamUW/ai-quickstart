@@ -96,9 +96,11 @@ export class Agent {
   /**
    * Generate verifiable text using Opacity and log to EigenDA
    */
-  async generateVerifiableText(prompt: string): Promise<VerifiableResponse> {
+  async generateVerifiableText(
+    prompt: string,
+    userAddress: string
+  ): Promise<VerifiableResponse> {
     let jsonString = "";
-    let userAddress = "anonymous";
     try {
       console.log("Generating text with prompt:", prompt);
       // Generate text with proof using Opacity
@@ -114,22 +116,6 @@ export class Agent {
       const jsonResult = JSON.parse(jsonString);
 
       console.log("Parsed JSON result:", jsonResult);
-
-      if (jsonResult.functionCall) {
-        if (
-          jsonResult.functionCall.functionName === "telegram" ||
-          jsonResult.functionCall.functionName === "linkedin" ||
-          jsonResult.functionCall.functionName === "twitter"
-        ) {
-          userAddress = jsonResult.functionCall.args.username;
-        }
-        if (
-          jsonResult.functionCall.functionName === "sendTransaction" &&
-          jsonResult.functionCall.args.recipientAddress
-        ) {
-          userAddress = jsonResult.functionCall.args.recipientAddress;
-        }
-      }
 
       // Get the next sequence number for this user
       const currentSequence = this.userSequenceMap.get(userAddress) || 0;

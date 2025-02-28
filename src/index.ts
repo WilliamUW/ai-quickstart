@@ -8,7 +8,7 @@ async function main() {
     // Example 1: Generate verifiable text
     console.log('\n📝 Generating verifiable text...');
     const prompt = 'What is the capital of France?';
-    const textResult = await agent.generateVerifiableText(prompt);
+    const textResult = await agent.generateVerifiableText(prompt, "0x0000000000000000000000000000000000000000");
     console.log('Response:', textResult.content);
     console.log('Proof available:', !!textResult.proof);
 

@@ -35,14 +35,14 @@ app.post('/api/generate', async (req, res) => {
       return res.status(503).json({ error: 'Agent not ready' });
     }
 
-    const { prompt } = req.body;
+    const { prompt, userAddress } = req.body;
     
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
     }
 
     console.log('Generating text for prompt:', prompt);
-    const result = await agent.generateVerifiableText(prompt);
+    const result = await agent.generateVerifiableText(prompt, userAddress);
     console.log('Generation result:', result);
     res.json(result);
   } catch (error) {
@@ -81,7 +81,7 @@ app.get('/api/transactions/:walletAddress', async (req, res) => {
     console.error('Error retrieving transactions:', error);
     return res.status(500).json({ 
       error: 'An error occurred while retrieving transactions',
-      message: error.message 
+      message: error instanceof Error ? error.message : String(error)
     });
   }
 });
